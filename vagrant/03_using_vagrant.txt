@@ -1,0 +1,52 @@
+1. vagrant init precise64 http://files.vagrantup.com/precise64.box
+2. vagrant up 
+This will download the box and create VM.
+3. vagrant ssh
+ssh into the VM just created
+4. check connectivity with our VM using ping 8.8.8.8
+5. exit
+we are now closing ssh connection and back in host machine
+6. vagrant destroy
+remove VM.
+
+
+Explain how it works under the hood...
+1. Vagrant is configured on per project basis
+2. Each project has its own Vagrant file
+3. Vagrant file is a txt file read by Vagrant to setup our environment(info about OS, RAM req)
+4. Vagrant commad climbs your directory tree starting from current directory.Looking for Vagrantfile.
+
+mkdir linuxacademy
+cd linuxacademy
+1. vagrant init precise64 http://files.vagrantup.com/precise64.box
+initialise  - what box - where it is. 
+this commnand create file - 'Vagrantfile', with the box name and whereabout info. It is written in Ruby.
+There are 2 supported vagrant verisons:
+1.0.X ->  version 1
+1.1+ to 2.0.X ->  version 2
+with in a single configuration block only a single version can be used.  Some newer parameters can not be used with older version of Vagrant.
+
+Can also force vagrant version by editing Vagrantfile. So Vagrant file will only load if install vagrant version satify the criteria specified.
+Vagrant.require_version ">=1.3.5"
+
+Hang on ... What is a box?
+boxes are just templates for vagrant managed machine. think of box as base OS already setup machine. Once downloaded box, it will be re-used.
+manage boxes: vagrant box
+			list 
+			add boxname
+			remove boxname
+
+2.Vagrant up
+Build environment using Vagrantfile. We share Vagrantfile with team members. VM is headless(no GUI). vboxheadless is the process name running VM.
+
+3. vagrant ssh
+handles all authentication to VM.
+
+4. vagrant destroy
+you made a mistake  - force shutdown VM and destroy it
+
+5. vagrant up
+recreate VM
+
+
+

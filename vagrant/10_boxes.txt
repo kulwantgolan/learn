@@ -1,0 +1,101 @@
+1. Boxes are base images in which we built our environment
+we can create custom boxes:
+	your linux distro of choice + your application
+
+2. we can create boxes from:
+automatically from existing vagrant environment
+mannually from existing non-vagrant machines.
+
+3. Boxes are portable - will work same on mac / windows
+
+4. box is a tar file that contains:
+Vagrantfile
+box-disk1.vmdk --> compressed hard disk
+box.ovf --> Descriptor of virtual hardware
+metadata.json  --> tells what system and where it will work (e.g. virtual box)
+
+5. Vagrant Manage boxes globally per user (not per project)
+Vagrant put all the global boxed and states into /.vagrantd
+vagrant_home is the variable associated to tell vagrant about this location and can be changed to poin to different location
+
+Boxes are mapped in Vagrant using a logical name. this name maps to config.vim.box setting in Vagrantfile
+
+6. vagrant box
+	add <boxname> <URL to download once>
+	list
+	remove <boxname> <provider e.g. virtualbox>
+	repackage   (it will give u box file -  into th current directory where u run this command)
+
+7. Create boxes from existing Vagrant environment
+vagrant ssh web
+sudo apt-get install mc  #midnight commander - old school file menu to copy and view file - act as software needed in dev
+mc #check it is working
+exit
+
+vagrant package web #create box from 'web VM'
+ls   #package.box is there
+
+vagrant box add web package.box
+
+vagrant package -> take current running env and package it into reusable box
+vagranr repackage -> take a box and repackage it so that it can be distributed, the running vagrant env has no effect on repackage. Use case is to get a boxfile from a box that is added using 'vagrant box add'
+
+
+8. Create a box from scratch
+Create a VM in virtualbox - use dynamically size and appropriate RAM, remove unneccary componets
+very first network device should be NAT device
+install and configure OS that we want to use
+A 'Vagrant' user must exist. use public vagrant key(it can be customised it and point to private key using config.ssh.private_key_path) 
+SSH server must be installed and configute to run on system boot.
+SSH user must have permission to sudo without a password.
+In ssh config be sure to disable requiretty.
+VM guest additions. Vary based on OS.
+
+
+if using default, insecure privaye key for Vagrant user:
+mkdir /home/vagrant/.ssh
+chmod 700 /home/vagrant/.ssh
+cd /home/vagrant/.ssh
+wget --no-check-certificate "https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub" -O authorized_keys
+chmod 600 /home/vagrant/.ssh/authorized_keys
+chown -R vagrant /home/vagrant/.ssh
+
+Linux based machines will need kernel headers and build tools.
+e.g. on ubuntu - mounting the ubuntu iso -
+sudo mount /dev/cdrom /media
+sudo sh /media/cdrom/VBoxLinuxAdditions.run
+
+Bare minimum of our box is ready......
+s
+install the software and configure it the way you like
+you can even pre setup and have the box ready for Chef/puppet
+
+Avoid the well know linux VM network device issues:
+rm /etc/udev/ruled.d/70-persistent-net.rules
+mkdir /etc/udev/ruled.d/70-persistent-net.rules
+rm -rf /dev/.udev/
+rm /lib/udev/ruled.d/75-persistent-net-generator.rules
+
+Optimisations:
+1. remove unneccasry pakages, build tools, linux headers and man pages
+2. Zero out the virtual hard drive with zeros and delete the zeo-filled file (will compress much more effectively later on)
+dd if=/dev/zero of=/EMPTY bs=1M
+rm -f /EMPTY
+
+package:
+vagrant package --base la_new_box  
+la_new_box -> name of VM
+it will create box .. package.box
+
+if you used non-default vagrant stuff such as custom SSH user/key -> set it up in Vagrantfile
+Vagrantfile will be loaded prior to the project's Vagrantfile and setting will be merged.
+So, set box with default but let user to override the defaults.
+
+Vagrant::Config.run do |config|
+ config.ssh.username = "linuxacademy"
+end
+
+$ vagrant package --base my_new_box --vagrantfile Vagrantfile
+
+Misconception: Vagrantfile package with boxes becomes new Vagrantfile later , when vagrant init is issued
+The truth, Vagrantfile package in the boxed MERGED with the settings of the new Vagrantfile

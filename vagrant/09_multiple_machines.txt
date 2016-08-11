@@ -1,0 +1,28 @@
+1. Set up multi-machine environment with one single Vagrantfile
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+	config.vm.box = "precise64"
+	config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+
+	#Setup Webserver
+	config.vm.define "web" do |web|
+		web.vm.hostname = "web"
+		web.vm.box = "apache"
+		web.vm.network "private_network", type: "dhcp"
+		web.vm.network "forwarded_port", guest:80, host: 8080
+		web.vm.provision "shell", path: "provision.sh"
+	end
+
+	#setup for MYSQL DB Server
+	config.vm.define "db" do |db|
+		db.vm.hostname = "db"
+		db.vm.box = "mysql"
+		db.vm.network "private_network", type: "dhcp"
+	end
+end
+
+2. Vagrant ssh <name of box>
+
+3. Check connectivity between two VM
+
+4. Vagrant machine have default username: Vagrant and default password : vagrant. (needed if ssh from one VM to another)
+

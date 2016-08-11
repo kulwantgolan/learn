@@ -1,0 +1,16 @@
+1. VM will get IP using DHCP. In Vagrantfile,
+config.vm.network "private_network", type: "dhcp"
+
+2. static ip
+config.vm.network "private_network", ip: "192.168.0.161"
+
+3. disable auto-configuration. Guest VM willnot get ip address, need to ssh into machine and setup network interface. 
+config.vm.network "private_network", ip: "192.168.0.161", auto_config:false
+
+4. public
+config.vm.network "public_network", ip: "---"
+
+5. if mutiple network interfaces connected. Which is default interface. 
+config.vm.network "public_network", bridge: 'en1: Wi-Fi(Airport)'
+name of inteface is en1 'Wi-Fi(Airport)'
+if vagrant cannot find this interface vagrant will ask from the list of avaiable interfaces during vagrant up.

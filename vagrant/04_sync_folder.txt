@@ -1,0 +1,19 @@
+1. Sharing folders between host machine and guest VM.
+When we distroy VM, the files in sync_folder are not deleted.
+
+2. if sync_folder mapping is in the Vagratfile, the vagrant up will have those files again on new VM.
+config.vm.synced_folder "src/" "/server/website"
+src - folder on host machine
+/sercer/website - folder on guest VM, will be created if not present
+
+3.The shared and sync folder are enabled by default (vagrant up / vagrant reload). if want to turn it off:
+config.vm.synced_folder "src/" "/server/website", diabale: true
+
+4.The sync folder is mounted with owner set to sshed user. 
+config.vm.synced_folder "src/" "/server/website", owner: "root", group: "root"
+
+5. By default, 
+On host machine:The Vagrant share is in project directory. the same directory that contain Vagrantfile. 
+On VM: it is mapped to /vagrant
+
+

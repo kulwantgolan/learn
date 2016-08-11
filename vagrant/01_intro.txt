@@ -1,0 +1,13 @@
+What is Vagrant?
+Tool to build complete development environment.
+
+It can create VM, provision it (shell script/ configuration managent tools like chef) and can handle entire lifecycle of VMs (suspend, halt, resume, destroy, ssh, package up state of machine to redistribute).
+
+Vagarant is typically paired with virtual box on developer machine.
+
+Think of VM needs apache and MySQL. Vagrant can do it in one command using vagrant file that corresponds to virtual environment that you want.
+
+More.... ok... Vagrant workflow...
+
+Developers can checkout repo/version from version control system(e.g. git) and run 'vagrant up'. The same scripts that deploy dev environment will also deploy production environment. So, development and deploy enviroment will be close to each other.
+Something horibly wrong. Run 'vagrant destroy'. and  recreate using 'vagrant up'.

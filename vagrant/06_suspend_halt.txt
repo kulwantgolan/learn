@@ -1,0 +1,8 @@
+1. suspend : Freeze VM, it can be resumed. The content in guest VM RAM is also stored on harddisk to properly resume.
+no more CPU/ RAM will be consumed but disk space continue to be used
+vagrant suspend
+2. halt : clean shutdown, it can then be resumed with 'vagrant up'
+vagrant halt
+vagrant halt --force (unclean shutdown)
+3. destroy: remove all traces of VM, remove hard disk , state files etc. shared folder still exit
+vagrant destroy

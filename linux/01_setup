@@ -1,0 +1,10 @@
+1. Watch youtube : iTerm Max OSX Terminal Setup - coolest theme by Descrrallo web frontend
+
+2. Learn iTerm2 commands: gist.github.con/helger/3070258
+
+3. Use vim sensible default (install using pathogen)
+get instruction from nicolashery/mac-set-up on github
+also add in ~/.vimrc
+set rnu
+
+4. Install Afred in Mac OSX

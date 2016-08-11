@@ -1,0 +1,4 @@
+1. We need Virtual box.
+2. Install vagrant
+vagrant --version to verify
+3.Vagrant can work with VMWare, AWS  EC2 and any other provider

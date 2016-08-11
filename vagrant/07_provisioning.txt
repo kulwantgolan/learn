@@ -1,0 +1,72 @@
+1. We know that developer can run vagrant up and can have complete dev environment as configured in Vagrantfile
+2. The env should have all the necessary softwares required for the project
+  a. we can bake the software in the box itself
+  b. we can install software at the part of env creation process - Vagranfile. This is Provisioning.
+
+
+We have base Vagrant box is there. We need to install software. We will do this by automatic provisioning. This is done when we run 'vagrant up'. Provisioners can be shell script, chef, puppet or plug-ins.
+
+Install Apache
+1. Manually
+   In Vagrantfile, configure port forwarding port guest(80) -> host(8080)
+   vagrant up
+   vagrant status
+   vagrant ssh
+   sudo apt-get update
+   sudo apt-get install -year
+   apache2
+   sudo rm -rf /var/www
+   sudo ln -fs /vagrant /var/www
+   exit
+   ls  (i am in directory where Vagrantfile is)
+   echo "<strong>HTML</string>" > index.html
+
+   vagranr ssh
+   cd /vagrant
+   ls
+   exit
+
+   localhost:8080 on local host machine's browser
+
+2. Provisioning using shell script
+   vagrant status (VM is running)
+   vagrant destroy
+   I am in my project directory
+
+vim provision.sh
+   #!/usr/bin/env bash
+   echo "Installing Apache and setting apache up... please wait"
+   apt-get update >/dev/null 2>&1
+   apt-get install -y apache2 >/dev/null 2>&1
+   rm -rf /var/www
+   ln -fs /vagrant /var/www
+
+In Vagrantfile,
+   config.vm.provision "shell", path: "provision.sh"
+
+3. Provisioning using chef
+   chef is build by opscode. Vagrant has build in support for provisioning with chef.
+   We can use chef-solo: uses local cookbooks for provisioning
+   or chef-client: will connect to chef-server to download cookbook and use run-list
+
+In Vagrantfile,
+   config.vm.provision "chef_solo" do |chef|
+     chef.add_recipe "vagrant_la"
+   end
+
+chef needs a particular folder structure
+mkdir -p cookbooks/vagrant_la/recipes
+cd cookbooks/vagrant_la/recipies
+vim default.rb
+execute "apt-get update"
+package "apache2"
+execute "rm -rf /var/www"
+link "/var/www" do
+  to "/vagrant"
+end
+
+cd - (go to project folder containg Vagrantfile)
+vagrant destroy (if running)
+vagrant_up (start VM using chef recipe)
+
+

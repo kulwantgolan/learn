@@ -1,0 +1,13 @@
+1. Forwarding port - expose port on guest VM as a port on host. In Vagrantfile,
+config.vm.network "forwarded_port", guest:80, host:8080 
+
+2. Reload any change in VM configuration, if Vm is running.otherwise just do vagrant up
+vagrant reload
+
+3. set up basic web server on port 80 inside shared directory on VM.
+SimpleHTTPServer is to server current directory via HTTP.
+cd /vagrant
+sudo  python -m SimpleHTTPServer 80
+
+4. check that webserver is running
+wget -qO - hostname:port
