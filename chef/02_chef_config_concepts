@@ -1,0 +1,39 @@
+--<Chef configuration concepts>--
+
+Policy
+------
+1. define the state of resources that u define (you define - roles/databags/env)
+2. Chef-client pull the policy and configure node to match state
+3. Policy is like
+	Policy should be installed
+	if policy is not install then install it
+	if policy is already install then do nothing
+	A file should exist
+	if file does not exist then create it
+	if file exist then do they have coreect content.
+
+Resources -- mapped to provider
+------------------------------
+define the state of single configuration item on a node
+it represent a single piece of a system and its state
+resources are executed by provider(e.g. dpkg on debian system) on node
+
+Most common resources:
+Pacakge: manage package
+template: ruby template in cookbook -> may have node attributes for node specif info
+Service: what run level to start a service, current state of service , can start/stop recieve
+
+1. Recipes - collection of resources
+2. coookbook - collection of recipes - oranisation specific policies are maintained 
+3. Run-list defines the order in which the recipies are run on a node during convergence
+4. Nodes receive their policy based of roles/individual node config.
+
+
+--<chef-client nodes concepts>--
+
+1. nodes can be configured to automatically run it
+chef-client supermarket recipe / bash script to run cron job on node
+
+2. chef server only know about  changes on node after the convergence (i.e chef-client run)
+
+

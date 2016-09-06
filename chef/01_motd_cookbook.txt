@@ -1,0 +1,73 @@
+Create motd cookbook
+------------------------
+start 2 VMs - one is workstation, one is node
+
+1. #rename hostname of workstation VM to workstation
+hostname workstation
+exec bash
+
+2. check connectivity between 2 VMs
+
+3. on node, ssh into this machine and make sure that root user can login
+vim /etc/ssh/sshd_config
+PermitRootLogin yes
+Later on, Disable it after chef-bootstraped on this node
+service sshd restart  #for ubuntu it will be ssh restart
+
+4. We need account setup on enterprise chef server,
+(allow 5 nodes)
+getchef.com -> sign up... login to management console
+create organisation - is unique 
+
+5. On workstation,
+each organistion have a starter kit(NOTE: every time u download it, the security keys are reset):
+ -> Download chef-repo
+ -> security certificated that allow communication between wokstation -- chef server -- nodes
+it is chef-starter.zip
+mv chef-starter.zip ~/
+unzip ched-started.zip
+cd chef-repo
+
+6. you need to install chef software manually on workstation
+-> knife tool
+root@workstation# curl -L https://www.opscode.com/chef/install.sh | bash
+
+7. We have chef and chef-repo for our organisation. Now, bootstrap a node
+-> install required chef stuff on it, chef-client, chef-tools
+-> Allows the node to automatically authenticate with chef-server
+-> node is added to chef enterprise server
+root@workstation# knife bootstarp <IP Address> -x root -P passwordonnode 
+
+8. On node,
+chef-client   #will do convergence - check anything server have to serve
+
+9. Now can write policies:
+On workstation,
+Inside chef repo,
+knife cookbook create motd
+# we have cookbooks/motd  --> recipes templates attributes
+vim cookbooks/motd/recipes/default.rb
+template "/etc/motd" do
+ source "motd.erb"
+ mode "0644"
+end
+#look in templates dir for template name motd.erb, take this template and create /etc/motd file (replace it if exist) and set permission on file 0644
+Now, cd ../templates/default
+vim motd.erb
+This is MOTD created by  <%= node["motd"]["author"] %>
+# this is  attribute
+cd in attributes  - default.rb
+Define attribute and presendence 
+default["motd"]["author"] = "Kulwant"
+
+10. Now, upload cookbook to Server
+knife cookbook upload motd  
+
+11. On node, run chef-client  (nothing happens)
+We node to define this node have to run this recipe.
+knife node run_list add nodename "recipe[motd]"  --> Adds default.rb recipe from motd cookbook.
+
+cd /var/chef --> backup folder or previous file
+cd /etc/motd --> new file
+
+

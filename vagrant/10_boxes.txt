@@ -22,6 +22,7 @@ Boxes are mapped in Vagrant using a logical name. this name maps to config.vim.b
 
 6. vagrant box
 	add <boxname> <URL to download once>
+	add ubuntu-14.04 http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box
 	list
 	remove <boxname> <provider e.g. virtualbox>
 	repackage   (it will give u box file -  into th current directory where u run this command)

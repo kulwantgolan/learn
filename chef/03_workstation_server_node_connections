@@ -1,0 +1,108 @@
+1. Chef Server contains
+Organisation  --> 
+	knife.rb
+		chef server URL
+		location of User.pem
+		location of cookbooks
+		location of validation.pem - not there anymore as now user.pem is used to create client.pem for node
+	validator.pem (not req from chef12.2.0 onwards) - use to create client.pem on 'sudo chef-client' run on node
+Users -> User.pem - private key that will be downloaded on workstaion
+Policy -> contains cookbook
+
+2. To make workstation to talk to Chef server:
+we download starter kit from chef-server:
+	NOTE: new user key will be generated for the user logged in, if you re-download it. 
+	starter kit is a zip file of chef-repo on chef-server
+	chef-repo contains:
+		.chef
+			knife.rb
+			user.pem
+		.gitignore -> you should create this if later planning to make it a git repo, the private key and secrets should not go to public repo
+			TXT START
+			.chef/*.pem
+			.chef/encrypted_data_bag_secret
+			TXT END
+		cookbooks
+		roles
+
+3. On workstation
+Download chef-Dk OR
+curl -L https://www.opscode.com/shef/install.sh | sudo bash  OR
+http://www.getchef.com/chef/install, select OS and OS ver  
+you can now use knife command.
+
+knife commnad looks for .chef file in current dir (or up in the tree) to search knife.rb file. Therefore if can run from chef-repo.
+knife.rb config file have URL of chef server and client key(user.pem) to connect to chef server. so, if we have correct user.pem then knife on workstation can issue commands to chef server.
+
+Commands:
+---------
+knife ssl check -> check workstation connectivity with server
+knife client list --> will show org-validator i.e. the organisation of the chef server that knife is interactiting with, check connectivity with chef server
+
+knife cookbook site download <cookbook name in supermarket.chef.io> - will download a tar file that needs to extracted and put in cookbooks folder
+knife cookbook site install <cookbook name in supermarket.chef.io> - will download and extract the cookbook in workstation's cookbook folder
+knife cookbook list  -> cookbook name and version on chef server
+knife cookbook upload <cookbookname> : upload the cookbook which is cookbooks folder, the cookbooks folder as known to knife in knife.rb
+	*Best practice -> to increment cookbook version in metadata.rb before uploading
+knife cookbook create <cookbookname>
+	cookbooks
+		cookbookname
+			metadata.rb : version of cookbook or dependencies of cookbook(create relation between cookbook)
+			recipes
+				default.rb
+					TXT START
+					template "create filename on node" do
+						source "template file"
+					end
+					TXT END
+			template
+				default
+					template file -> may contain node attribute e.g. node['motd']['author']
+			attribute
+				default.rb -> default['motd']['authot'] = 'kulwant'
+
+4. Establish the connection between Chef-Server and nodes.
+To esbalish this connection first we need the following:
+
+From our workstation we should be able to ssh into the nodes with a user account who is having sudo priveleges. So that that user can set up node to check in with Server.
+knife bootstrap 
+	..........ssh info start......
+(Username/password)			ipaddress --ssh-user USER --sudo --ssh-password PASSWORD --use-sudo-password OR
+(Username/key authentication)		ipaddress --ssh-user USER --sudo --identity-file ~/.ssh/my.pem  OR     --> the public key for this private key should be in node's ~/.ssh/authorized_keys and 0700 permission on .ssh folder
+(local VM spun using vagrant)		localhost --ssh-port PORT  --ssh-user vagrant --sudo --identity-file IDENTITY_FILE  --> use vagrant ssh-config to get info 		
+	..........ssh info end......
+					--nodename <FDQN of node>/ any_name_that_chef_server_will_recognise_it_by
+					--runlist 'recipe[cookbookname::receipename]'  if recipename is not specified default.rb i.e. default recipe will be used
+
+The bootsrap will do the following:
+1. The node will have following files: 
+		/etc/chef/client.pem - this is created by workstation using USER.pem (Before chef 12.2.0 it used to be created dusing validator.pem file)
+		/etc/chef/client.rb
+			TXT START - Add this text to get logging info when chef-client is run, the log in by default on STDOUT i.e. on node
+			log_level :info 
+			TXT END
+2. The node will have chef-client that will run :
+	registering node with server (run only during bootstrap)
+	convergence (i.e. use run list on chef server to fetch desired recipes)	and run those recipies to reach desired state
+	ohai to collect node info to send to server
+	
+knife node list -> get nodes info registered on chef server
+
+5. Updating node's configuration 
+we can setup node to automatically run chef-client periodically to update itself.
+for manually running 'chef-client' on a node
+	we can ssh into node and run 'sudo chef-client' OR
+	On workstation, we can issue the following command
+	knife ssh .........ssh info....... 'sudo chef-client' --manual-list
+	
+if want to update what recipies need to run on a node, 
+	knife node run_list add <nodename> 'recipe[cookboook::recipename]'
+
+6. Delete a node from chef server
+On workstation,
+knife node delete nodename --yes
+knife client delete nodename --yes
+
+it only removes entry on node from server. The info on node should be removed seperately/ decommission of node needs to be done seperately
+
+

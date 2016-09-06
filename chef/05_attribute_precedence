@@ -1,0 +1,28 @@
+Attribute precedence
+--------------------
+1. Attributes are specific info about a node
+2. Attribute describe:
+	current state of node
+	state before chef-client run and state after chef-client run
+
+3. Attribute can be defined in multiple places.
+	ohai - describe state of node - cannot be changed/overwrite by us 
+	cookbook's attribute file
+	Roles and Environment
+
+4. chef-client run
+	load current node object from server
+	run ohai node object
+	load attributes comming from recipies env and role
+	determine conflicts are choose attributes based on precedence level
+	create node object - container of attribute info
+	copies node obj to chef-server - now knife can use it
+
+5.		Attribute file -- node/recipie ----environment --- role
+default			1		2		3		4
+force-default		5		6
+normal			7		8
+override		9		10		11		12
+force_override		13		14
+automatic					15
+		

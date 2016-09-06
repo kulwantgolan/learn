@@ -1,0 +1,119 @@
+We have Workstation , Hosted chef server and bootstraped a node.
+
+On workstation,
+----1st---- 
+1. knife cookbook create apache
+vim cookbooks/apache/recipes/default.rb
+TXT START
+#assume node is centos
+package "httpd"  do  --> package resource allow us to install package by default
+	action :install
+end
+service  "httpd" do   
+	action [:enable,:start]
+end
+TXT END
+
+2. knife cookbook upload apache   ---> upload whole cookbook to server
+
+3. knife node run_list add  node1 'recipe[apache]'    ---> adds default.rb to runlist for node1
+
+On node, run chef-client  --> service httpd service -- it is enabled
+
+----2nd----
+1. knife cookbook create security
+vim cookbooks/security/recipes/default.rb
+TXT start
+file '/etc/chef/validation.pem' do  --> apply to file on node
+	action :delete
+do
+TXT END
+
+2. It needs to be first recipie on run list. How to add before apache recipe.
+knife node run_list add node1 -b "recipe[apache]" "recipe[security]"
+
+Now, we have run list for node1  : security::default.rb and then apache::default.rb, but secutity cookbook is not yet uploaded on the server
+if chef-client run we will enconter error 412 : 'Precondition Failed"
+
+3. knife cookbook upload security  ---> if we have any syntax error in recipe, during upload it will show us
+
+######################################################################################
+We have Workstation , Hosted chef server and bootstraped a node.
+Apache virtual host configuration
+
+On workstation,
+MVC -> Attribute is M(define data), recipe as C(process data and pass to template), template as V 
+
+1. vim cookbooks/apache/attributes/default.rb
+ATTRIBUTE TO DEFINE SITES THAT WE ADD TO WEBSERVER
+we can define attributes inside cookbook, environments or roles. Attribute allow us to define information about something.We want to use it define info about node.
+we define data in attribute file  --> we can define attributes base on node properties such as it it debian , suse system
+understand attribute precedence(overwrite default attribute if needed) - default is lower level
+Attribute file is loaded when chef-client is run, it is loaded as part of node object.
+TXT START
+default["apache"]["sites"]["node1"] = { "port" => 80, "domain"=> "node1.vm.vagrant"}  -----> where this attrubute is (apache cookbook) , what are we defining (sites), site name = properites of site
+TXT END
+
+2. vim cookbooks/apache/recipes/default.rb
+TXT START
+#assume node is centos
+package "httpd"  do  --> package resource allow us to install package by default
+	action :install
+end
+node["apache"]["sites"].each do |sitename, data|  --> get info from attribute file
+	# where is documentroot?
+	document_root = "/contents/sites/#{sitename}"
+
+	directory document_root do  --> create this directory
+		mode '0755'
+		recursive true --> mkdir -p
+	end
+
+	template '/etc/httpd/conf.d/#{sitename}.conf' do  --> location on node where this template should end up
+		source "vhost.erb"  --> take this file
+		mode "0644"
+		variables(	---> pass variable to template file
+			:document_root => document_root,
+			:port => data["port"],
+			:domain => data["domain"]
+		)
+		notifies :restart, "service[httpd]"
+	end
+end
+service  "httpd" do   
+	action [:enable,:start]
+end
+TXT END
+
+3. cookbooks/apache/templates/default/vhost.erb
+TXT START
+<% if @port == 80 -%>   ---> supress line break after ruby evaluation
+	NameVirtualHost *:80
+<% end -%>
+
+<VirtualHost *:<%= @port %> >
+	ServerName <%= @domain %>
+	DocumentRoot <%= @document_root %>
+<Directory>
+	Options FollowSymLinks
+	AllowOverride None
+</Directory>
+<Directory <%=  @document_root %> >
+	Options Indexes FollowSymLinks MultiViews
+	AllowOverride None
+	Order allow,deny
+	allow from all
+</Directory>
+</VirtualHost>	
+TXT END
+
+4. knife cookbook upload apache
+
+5. chef-client
+
+##############################################
+Automate the creation of index.html file
+
+1. vim cookbooks/apache/attributes/default.rb
+
+
