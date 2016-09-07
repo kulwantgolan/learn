@@ -1,0 +1,109 @@
+Data bags - variables of JSON data
+---------------------------------
+
+1. Global variable ; stored in json format ; accessible from chef server
+2. it is indexed for searching
+3. it can be loaded by a recipe ; can be accessed during search
+
+what type of data it holds?
+--------------------------
+1. Create a recipe that search for specific databag and create users based on data in data bag
+2. Admins to be added to sudo
+3. API/DB credentials 
+	-> more secure than storing them as environment attributes
+	-> we can encrpt it upload to a node and decrypt it
+
+example of a databag?
+----------------------
+{
+	"id":"username",
+	"comment":"admin user"
+	"uid":2005,
+	"gid":0,
+	"home":"/home/username",
+	"shell":"/bin/bash"
+}
+
+Create data bags on workstation and upload to chef server
+Search databag for specific info using knife tool
+---------------------------------------------------------
+workstation-chef-repo# mkdir data_bags and cd into it
+
+Task: Deploy Administrative users to our node and give them sudo previleges 
+create user and group datbag
+#mkdir {users,groups}
+users# vim admin.json  -> this data is parsed by recipe
+{
+	"id":"admin,             --> each databag item needs to have unique id, since the username is unique on linux system , it is used
+	"comment":"admin user",
+	"uid":"2005",
+	"gid":0,
+	"home":"/home/admin",
+	"shell":"/bin/bash",
+	"password":"123456"
+}
+groups# vim sudoers.json
+{
+	"id":"sudoers",  ---> On CentOS, if a user belongs to wheel group, they have sudo previleges
+	"gid":3005,
+	"members":["admin"]
+}
+
+knife data bag create users  -> will create databag users on server
+knife data bag create groups -> will create databag groups on chef server
+
+knife data_bag from file users admin.json  -> will look inside chef-repo/data_bags/users directory and add specified data items to server
+knife data_bag from file groups sudoers.json -> upload data item to data bag on server
+
+Search data bag
+-------------------
+knife search users "id:admin"  -> knife search in databag name "users" and look for attribute:value pair, show data item
+knife search users "id:admin" -a home -> just want to get a particular attribute:value pair for targetted data item
+
+write recipe to use data-bag item
+--------------------------------
+Create Admin user and assign it to wheel group
+
+knife cookbook create localusers
+In localusers/recipies/default.rb
+explaination: search(:users,"comment:admin*")    ---> search in databag named "users"; return databag items for matching attribute:value specified
+
+search(:users,"*:*").each do |data|
+	user data["id"] do    --------------> using user resource
+		comment data["comment"]
+		uid data["uid"]
+		gid data["gid"]
+		home data["home"]
+		shell data["shell"]
+	end	
+end
+include_recipe "localusers::groups"  ---> localusers cookbook and groups recipe in it
+	--> group recipe will run only if user is added to system. To make the added user to wheel group
+	--> both recipies are in same cookbook so no change in metadata required
+
+
+knife cookbook upload localusers
+knife node run_list add nodename "recipe[localusers]"  -->Add recipie to node run list
+
+Now, run chef-client on node
+cat /etc/passwd  -> admin user is created
+
+
+Now, create wheel group
+On chef-repo, in localusers cookbook, create another recipe:
+vim groups.rb
+
+search(:groups,"*:*").each do |data|
+	group data["id"] do    --------------> using group resource
+		gid data["gid"]
+		members data["members"]
+	end	
+end
+
+knife cookbook upload localusers
+
+Now, run chef-client on node
+groups admin   ---> show 'admin' user is part of wheel group
+
+
+
