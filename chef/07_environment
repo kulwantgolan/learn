@@ -1,0 +1,123 @@
+Environment
+-----------
+
+It is used to map organisation's real life workflow to chef server
+1. Apply different cookbook version to specific env - dev/prod/staging
+	we want to test some recipies in staging without affecting production env
+2. Can define environment level attributes --> set environment specific application  (paypal API url and credential will be different for staging and prod env)
+3. It allow sharing of cookbooks within organisation
+
+Create environment
+-------------------
+1. it is stored in JSON file / .rb file and is located in chef-repo/environments
+2. example dev.rb
+name "dev"
+description "Devlopment enviornment"
+cookbook "security","=0.1.0"       -----> it is not run list of node but the cookbook version requirement if it is in run list
+cookbook "motd", "=0.2.0"
+cookbook "apache","=0.2.0"
+override_attributes({
+	"author" => { "name" => true }
+	})
+
+
+Attributes precedence in env:
+-----------------------
+1. Override has higher precedence than default , force_default and normal
+2. default attribute in env will take precedence over a default defined in cookbook attribute file
+
+Assign node to an environemt
+-----------------------
+By default, all nodes are added to _default environment
+All nodes must belong to an environment
+
+1. Assign it manually in chef-server GUI
+2. use knife plugin called knife-flip 
+3. we can modify client.rb file located in /etc/chef directory on node and set env variable = what we want
+
+
+Goals:
+------------
+1. Configure the env: dev/prod
+2. Modify apache cookbooks with newer version
+3. Set newer version for dev and older version for prod
+4. Configure Client.rb on node to look for proper environment
+
+
+In Workstation, chef-repo#
+1. we need to configure in workstation and upload to shef-server
+mkdir environments
+In environments# vim dev.rb
+name "dev"
+decription "This is dev env"
+cookbook "apache", "=0.1.5"  --> metadata.rb of cookbook contain version of cookbook
+override_attributes({   ---> default_attributes would also override default attribute in cookbook/recipe
+	"author" => {
+		"name" => "my new author name"       ----> it will override attribute in cookbook default["author"]["name"] = "my authorname"
+	}
+	Can also potentially define API credentials/ dev url for code here
+})
+
+
+knife environment list -w  --> list all env; and -w show API url for that environment
+knife environment from file dev.rb  --> Create env , if we change env , we have to recreate/update it using this command
+
+Change env a node belongs to 
+----------------------------
+1. manually in chef server
+2. Use knife flip plugin from workstation
+3. On node, /etc/chef/client.rb
+envornment "dev"
+
+
+Create a second version of apache cookbook -> add an attribute "author", use it in template in index.html.erb
+Apply to dev node
+------------------------------------------
+In workstation, Chef-repo, to to apache cookbooks, attributes/default.rb# 
+default["author"]["name"]= "kul"
+
+In recipe, default.rb #
+template "/content/sites/#{sitename}/index.html" do
+	variables (
+		:author_name => node["author"]["name"]
+	)
+end
+
+
+In templates, vim index.html.erb,
+<h4> <%= @authhor_name %> </h4>
+
+In cookbook, vim metadata.rb
+version '0.1.5'
+
+knife cookbook upload apache
+
+How to use 0.1.0 for prod and 0.1.5 or dev  (currently both dev and prod use 0.1.5)
+--------------------------------------------
+In workstation, In env #prod.rb
+name "prod"
+description "production env"
+cookbook "apache", "=0.1.0"   --> in env u specify which version of cookbook to use
+
+knife environment from file prod.rb
+
+In production node, --> tell node tht it belongs to prod env
+/etc/chef/client.rb
+environment "prod"
+
+run chef-client
+
+View / Delete Environment with Knife
+------------------------------------
+knife environment list -w  --> list all env
+knife environment compare dev   --> list cookbook constraints in env
+knife enironment compare dev prod
+knife environment compare --all
+knife environment delete dev --> delete an environment from server
+knife environment from file dev.rb --> add /update environment
+knife environment show dev --> show cookbook ver, attributes of the env
+
+
+
+
+

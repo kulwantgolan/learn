@@ -1,0 +1,103 @@
+Roles   -> better way to assign recipe to node
+-----------
+
+A way to define certain patterns and processes that exist across nodes in an organisation 
+as belonging to a single job function
+
+What we have done till now: Added recipies to each node's run list
+Instead
+1. We update a role on chef server; role contains attributes and runlist of recipies to run
+2. Attributes defined in a role has its own level of precedence
+So, we need not to manually touch each node that required a run list change
+
+Concept is Instead of providing run-list to a node, we assign the node a role.
+
+If we have a recipie that needs to be run on all node regardless of their role, e.g. security recipe - we create a base role and add this role in other role's run list
+
+Role management with Knife
+--------------------------
+knife role create role_name
+chef-repo/roles/rolename.rb
+knife role from file chef-repo/roles/rolename.rb
+knife role list -w (view list of roles on chef server)
+knife role delete role_name
+
+Create web server role - assign it to node 
+Have a run list of recipies associated with the role
+---------------------------------------------------
+In workstation, chef-repo#mkdir roles
+vim webserver.rb
+name "webserver"
+description "apache web server role"
+run_list "recipe[apache]","recipe[localusers]"
+
+knife role fom webserver.rb
+remove the recipies from targeted node run list -> using web server
+knife node run_list add nodename "role[webserver]" ---> assign role(instead of recipe) to node
+
+Now, run chef-client on node
+
+Add more recipes to role
+In workstation, roles webserver.rb #run_list "recipe[apache]","recipe[localusers]", "recipe[security]"
+knife role fom webserver.rb
+
+We will create mysql cookbook, add a mysql role to a node
+---------------------------------------------------------
+In workstation, chef-repo# cd cookbooks
+knife cookbook create mysql
+vim recipes/default.rb
+
+package "mysql-server" do  --> install mysql server
+end
+package "mysql" do  --> install mysql client
+end 
+
+knife cookbook upload mysql
+
+we need to have root user login enable to bootstart a node
+On node, vi /etc/sshd_config
+PermitRootLogin yes
+service sshd restart
+knife bootstarp ip-address-of-node -x root -P 123456    ----> it is going to bootstarap with FQDN and it will be unique
+
+We have a new node that is just bootrap, we need to give it mysql role
+----------------------------------------------------------------
+
+chef-repo#roles/database.rb
+name "database"
+description "mysql description"
+run_list "recipe[mysql]"
+
+knife role from file database.rb
+
+Tell node that it's role is webserver - we need to do it once only
+knife node run_list add nodename "role[database]"
+
+
+Create a Base role
+------------------
+A recipe that need to run on say 10 roles.
+Ans: we can create a role and include it into another role's run-list
+
+Create a role base.rb
+name "base"
+description "run on all nodes"
+run_list "recipe[security]"
+
+Add base role to all roles - in their run list
+
+Now we have to update our base role to modify all nodes.
+
+knife role from file webserver.rb
+knife role from file database.rb
+knife role from file base.rb
+
+
+
+
+
+
+
+
+
+

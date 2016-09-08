@@ -1,0 +1,23 @@
+Normal workflow
+-----------------
+
+1. Nodes should be bootstarp and managed from workstation  --> we can use batch scripting to bootstrap multiple nodes
+2. Nodes should be assigned roles and environments
+3. Attributes specif to role/env should be configured automatically
+
+
+BUT in Auto-scaling environments
+----------------------------------
+such as AWS , we need unattended bootstrapping
+
+For unattended bootstap the node should meet the following criteria:
+1. Must be able to authenticate to web server
+2. Must be able to configure a run_list  --> node should be able to assign itself the desired role which in turn contain run_list
+3. must be able to access chef-validator.pem. So, that it may create client.pem and identity on chef server  --> clould init (called USER DATA in AWS)allow us to pass bash script to machine image at boot time. bash script can download .pem file and client.rb from say S3 bucket
+4. must have unique node name
+5. client.rb should have proper configuration so that it know what chef-server to communicate with
+6. modify file.json in /etc/chef --> to include run_list for the node 
+
+Then chef-client will execute for the first time.
+
+
