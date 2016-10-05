@@ -5,7 +5,9 @@ Organisation  -->
 		location of User.pem
 		location of cookbooks
 		location of validation.pem - not there anymore as now user.pem is used to create client.pem for node
-	validator.pem (not req from chef12.2.0 onwards) - use to create client.pem on 'sudo chef-client' run on node
+			organisation-validator.pem used to ne copied to node as validator.pem during bootstrap and
+			validator.pem (not req from chef12.2.0 onwards) - use to create client.pem on 'sudo chef-client' run on node
+			client.pem on the node is used to authenticate it against the chef-server
 Users -> User.pem - private key that will be downloaded on workstaion
 Policy -> contains cookbook
 

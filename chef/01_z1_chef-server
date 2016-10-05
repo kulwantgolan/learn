@@ -1,0 +1,47 @@
+Types of chef server:
+---------------------
+1. Open Source chef server
+	- free version
+	- each instance of server must be configured and managed locally
+	- only one organisation is possible
+	- Cannot integrate with AD/LDAP
+2. Chef-server enterprise (hosted)
+	-Scalable
+	-Organisations is available
+	-Always Available
+	- Resource-based access control
+	-Can integrate with AD and LDAP
+3. Chef-server enterprise (on-premise)  ---> 
+	-Scalable
+	-Organisations is avalable
+	-Hosted on-premise behind your firewall
+	-Manage yourself
+
+Orgamisation
+-------------
+One organisation is completely isolated from other organisation.
+Different infrastructure, policies and cookbooks.
+
+For each organisation we need starter kit to bootrsrap node, the kit contains
+1.  chef-repo : contain .chef folder that contains
+	validation.pem keys (passwd to node so that they can authenticate against chef server)
+	knife.rb  --> used by knife tool, location of chef server; user.pem location; cookbook location
+	user.pem --> called client key
+However, if u download a new starter kit:
+	-it generates new security keys. Therefore, it should be distributed to other team members.
+
+Role of chef-server
+-------------------
+1. Chef server stores sytem configuration information:
+	Policies for nodes
+	Recipes
+	Cookbooks
+	Databags
+	Templates
+	Attribute file
+2. it also authenticate workstaion - upload condiguration
+3. it also authenticate node - node should have key
+	node check in to chef-server and download configuration (node desired state)
+	node then, based on configurations supplied by server, the node configures itself
+
+

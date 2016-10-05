@@ -30,7 +30,7 @@ SETTING UP PXE SERVER
 Environment: Virtualbox -> VM - bridge adaptor, static ip, disable firewalld and selinux,  services : DHCP, tftp, syslinux, vsftpd
 On VM -> 4g memory, 25g hard disk -- for iso file , CentOS 7 install
 
-login as root
+login as root pwd 123456;  Also we have : User (Admin), password g..3 
 nmtui -> edit connection -> edit..  -> static ip and gateway and DNS server
 ip addr
 systemctl restart network
@@ -39,7 +39,7 @@ ping www.google.com
 
 yum -y upgrade
 vi /etc/selinux/config
-SELINUX=disable
+SELINUX=disabled
 when next time system reboots SELINUX will be disbaled
 
 systemctl stop firewalld
@@ -53,24 +53,24 @@ ping google.com
 sestatus  -> is selinux is enable/disabled
 
 NOw can ssh into this VM..
-yum -y install dhcp tftp tftp-server syslinux wget vsftpd
+yum  install -y  dhcp tftp tftp-server syslinux wget vsftpd xinetd*
 
 Configure DHCP service
 --------------------
 vi /etc/dhcp/dhcpd.conf
 
-ddns-update-style interm;
+ddns-update-style interim;
 ignore client-updates;
 authoritative;
 allow booting;
 allow bootp;
-allow-unknown-clients;
+allow unknown-clients;
 
 #internal subnet configuration
 subnet 192.160.0.0 netmask 255.255.255.0 { 
 range 192.168.0.50 192.168.0.250;
 option domain-name-servers 192.168.0.1;  --> PXE server
-option domain-name "example.com";   --> optional
+option domain-name "server1.example.com";   --> optional
 option routers 192.168.0.1; ---> PXE server
 default-lease-time 600;
 max-lease-time 7200;
@@ -91,11 +91,11 @@ server_args = -s /tftpboot   ---> we will create this directory in just a moment
 mkdir -p /tftpboot
 chmod 777 /tftpboot/
 
-cp -v /usr/share/syslinux/pxelinux.0 /tftpboot
-cp -v /usr/share/syslinux/menu.c32 /tftpboot
-cp -v /usr/share/syslinux/memdisk /tftpboot
-cp -v /usr/share/syslinux/mboot.c32 /tftpboot
-cp -v /usr/share/syslinux/chain.c32 /tftpboot
+cp -v /usr/share/syslinux/pxelinux.0 /tftpboot/
+cp -v /usr/share/syslinux/menu.c32 /tftpboot/
+cp -v /usr/share/syslinux/memdisk /tftpboot/
+cp -v /usr/share/syslinux/mboot.c32 /tftpboot/
+cp -v /usr/share/syslinux/chain.c32 /tftpboot/
 
 mkdir /tftpboot/pxelinux.cfg
 mkdir -p /tftpboot/netboot/
@@ -103,7 +103,7 @@ mkdir -p /tftpboot/netboot/
 Download centoS 7 DVD
 wget http://mirror.rackspace.com/CentOS/7/isos/x86_64/CentOS-7-x86_64-DVD-1503-01.iso
 
-mount -o loop CentOS-7-x86_64-DVD-1503-01.iso mnt/
+mount -o loop CentOS-7-x86_64-DVD-1503-01.iso /mnt/
 cp -r /mnt/* /var/ftp/pub/
 
 cp /mnt/images/pxeboot/vmlinuz /tftpboot/netboot/
@@ -154,7 +154,6 @@ what if we want to have different options say ubuntu ? we can have different LAB
 
 Enable services
 --------------
-
 systemctl enable dhcpd
 systemctl enable xinetd
 systemctl enable vsftpd
@@ -165,9 +164,4 @@ systemcrl restart vsftpd
 
 TEST
 ---------------
-
 1. Create a VM .....settings --- boot netwotk and top in boot order, netwoek card - bridged adapter.
-
-
-
-

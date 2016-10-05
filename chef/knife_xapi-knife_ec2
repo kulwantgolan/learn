@@ -1,0 +1,78 @@
+1. Watch youtube : iTerm Max OSX Terminal Setup - coolest theme by Descrrallo web frontend
+
+2. Learn iTerm2 commands: gist.github.con/helger/3070258
+
+3. Use vim sensible default (install using pathogen)
+get instruction from nicolashery/mac-set-up on github
+also add in ~/.vimrc
+set rnu
+
+4. Install Afred in Mac OSX
+
+------------------------------------------
+Setting up Chef on new PC
+-----------------------
+1. Brew for muti user
+2. rvm is installed
+3. rvm install 2.1.0
+4. Get Chef on workstation -> curl -L https://www.opscode.com/chef/install.sh | bash
+5. Create dir  chef-repo on workstation and go into it
+6. Create .chef file -> copy knife.rb, kulwantk.pem, catapult-validator.pem file (from  hosted chef server)
+Note: don't create catapult-validator.pem file again. Get it from other user
+7. gem install knife-xapi
+8. gem install pry
+9. knife xapi commad...one liner
+root password : small....1?
+
+----------
+AWS
+-------
+1. Change knife.rb file 
+knife[:region] = "ap-southeast-2"
+knife[:aws_credential_file] = "location_of_credential_file"  -> credential file downloaded from AWS
+
+2. untar prov.tar.gz ---> provisioning folder created to generate knife xapi command for AWS
+3. rvm install 2.3.1  
+4. cd into provisioning ----> 
+5. gem install bundle
+6. bundle install
+7. rvm list --> 2.3.1 is current
+8. rvm gemset list --> provisioning-scripts is current gemset
+9. --NO-Download python 3.5.2 from https:// www.python.org/downloads/
+10.--NO - Use wolfpaulus.com/journal/mac/installing_python_osx
+11. brew install pyhon
+12. brew install pip
+13. pip install awscli
+14. make sure to have ~/.aws/credentials
+[default]
+region=ap-southeast-2
+aws_acess_key_id=[secret key id]
+aws_secret_access_key=[access key]
+15. script/aws-create.rb  --> will create knife command to execute to start a node in chef
+16. select options
+	chef-node name
+	elstic ip : will use if there is a free elastic IP available already otherwise request a new one
+	disable termination - y--> Terminate only through GUI
+	EBS - n
+	optimised I/O -- (depends upon instance support for it) - n
+	EBS type - gp2: SSD  general purpose SDD/HDD and (IOPS and throghput) .. price based on disk size and rate per IOPS
+		 - st1 : good for streaming video
+		 - standard (for test) - magnetic disk
+	10GB
+	Options (n) t2 medium 
+		c4 large - DB
+	Security group
+		postgres  no in/out,  postgres-server (only postgres in) , redis, SSH from our external ip
+	Zone - Datacenters A B C , public subnet - get public ip , DMZ subnet - no public ip
+	ssh-key catapult-kulwant  ----> corresponding catapult-kulwant.pem file in your ssh keys (this file is genearted from AWS)
+17. Install AWS EC2 plugin.... and execute knife ec2 command
+18. github acc-> kulwantk@sma  gk..3
+19. https://catapult-elearning.sigin.aws.amazon.com/console  --> Access AWS console -- kulwantk [password]- MFT code
+
+
+Dependency
+---------
+prov.tar.gz --> script to create provisioning on AWS - written in ruby
+		going to this folder : ruby 2.3.1 and gemset provisioning-scripts 
+		uses AWS command line
+		

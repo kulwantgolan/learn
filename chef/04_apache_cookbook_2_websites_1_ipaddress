@@ -1,4 +1,6 @@
-We have Workstation , Hosted chef server and bootstraped a node.
+We have Workstation , Hosted chef server and bootstraped a node. (refer to 01_motd_cookbook)
+
+Add log_level :info in /etc/chef/client.rb on the node to get the messages of whats happening on the node when chef-client runs;
 
 On workstation,
 ----1st---- 
@@ -6,7 +8,7 @@ On workstation,
 vim cookbooks/apache/recipes/default.rb
 TXT START
 #assume node is centos
-package "httpd"  do  --> package resource allow us to install package by default
+package "httpd"  do  --> package resource allow us to install package by default; Assume target node is centOS
 	action :install
 end
 service  "httpd" do   
@@ -32,10 +34,63 @@ TXT END
 2. It needs to be first recipie on run list. How to add before apache recipe.
 knife node run_list add node1 -b "recipe[apache]" "recipe[security]"
 
+knife node show nodename --> see the run list of node
+
 Now, we have run list for node1  : security::default.rb and then apache::default.rb, but secutity cookbook is not yet uploaded on the server
 if chef-client run we will enconter error 412 : 'Precondition Failed"
 
 3. knife cookbook upload security  ---> if we have any syntax error in recipe, during upload it will show us
+
+######################################################################################
+Manual process: Virtual hosting Apache - Hosting multiple websites on 1 physical server
+--------------------------------------------------------------------------------------
+1. we have centOS machine
+
+2. yum install httpd ----> is apache2 in ubuntu
+
+3. CentOS comes with iptable and SElinux enabled by default; we want to disable then
+or we can set up iptables and selinux to accept incoming connections on port 80
+vi /etc/sysconfig/selinux
+SELINUX=disabled
+
+service iptables stop  --> stop iptable for this boot instance
+chkconfig iptables off --> turn off for future boot instance
+
+4. reboot
+5. vim /etc/httpd/conf/httpd.conf
+NameVirtaulHost *:80  ---> Activate virtual host
+Listen 80
+Listen 81
+<VirtualHost *:80>
+	Servername testa.com
+	ServerAlias www.testa.com
+	DocumentRoot "/var/www"   ---> it by default points to "/var/www/html"
+</VirtualHost>
+<VirtualHost *:80>
+	Servername testb.com
+	ServerAlias www.testb.com
+	DocumentRoot "/var/www"   ---> it by default points to "/var/www/html"
+</VirtualHost>
+<VirtualHost *:81>
+	Servername port81.com
+	ServerAlias www.port81.com
+	DocumentRoot "/var/www"   ---> it by default points to "/var/www/html"
+</VirtualHost>
+
+service httpd restart
+6. cp -R testa /var/www ; cp -R testb /var/www ; cp -R port81 /var/www
+Folder for sites contain html and css files for website
+In browser try www.testa.com; www.testb.com ; www.port81.com:81
+
+7. /etc/hosts
+ipadd of machine 	testa.com
+ipadd of machine 	testb.com
+ipadd of machine	port81.com
+
+8. testa.com testb.com in browser
+
+
+
 
 ######################################################################################
 We have Workstation , Hosted chef server and bootstraped a node.
